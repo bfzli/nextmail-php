@@ -26,6 +26,8 @@ final class SecurityEventKinds
     public const TWO_FACTOR_REQUIREMENT_CHANGED = 'two-factor-requirement-changed';
     public const ADDRESS_PASSWORD_SET = 'address-password-set';
     public const ADDRESS_PASSWORD_REMOVED = 'address-password-removed';
+    public const CALENDAR_LOGIN_CREATED = 'calendar-login-created';
+    public const CALENDAR_LOGIN_REVOKED = 'calendar-login-revoked';
     public const DIRECTORY_SYNC_CONNECTED = 'directory-sync-connected';
     public const DIRECTORY_SYNC_DISCONNECTED = 'directory-sync-disconnected';
     public const DIRECTORY_SYNC_TOKEN_ROTATED = 'directory-sync-token-rotated';
@@ -59,6 +61,8 @@ final class SecurityEventKinds
             self::TWO_FACTOR_REQUIREMENT_CHANGED,
             self::ADDRESS_PASSWORD_SET,
             self::ADDRESS_PASSWORD_REMOVED,
+            self::CALENDAR_LOGIN_CREATED,
+            self::CALENDAR_LOGIN_REVOKED,
             self::DIRECTORY_SYNC_CONNECTED,
             self::DIRECTORY_SYNC_DISCONNECTED,
             self::DIRECTORY_SYNC_TOKEN_ROTATED,

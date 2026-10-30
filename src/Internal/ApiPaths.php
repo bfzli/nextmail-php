@@ -32,6 +32,8 @@ final class ApiPaths
     public const ACCOUNT_USERNAME = '/account/username';
     public const ACCOUNT_USERNAME_AVAILABILITY = '/account/username/availability';
     public const ADDRESSES = '/addresses';
+    public const ADDRESS_BOOKS = '/contacts/address-books';
+    public const ADDRESS_BOOK_MEMBER = '/contacts/address-books/:id/members/:memberId';
     public const ANALYTICS_MAILBOX = '/analytics/mailbox';
     public const ANALYTICS_SENDING = '/analytics/sending';
     public const APP_HOST = '/app-host';
@@ -105,6 +107,9 @@ final class ApiPaths
     public const BROADCAST_RESEND = '/broadcasts/:id/resend';
     public const BROADCAST_SEND = '/broadcasts/:id/send';
     public const BROADCAST_STATS = '/broadcasts/:id/stats';
+    public const CALENDAR_CALENDAR = '/calendar/calendars/:id';
+    public const CALENDAR_CALENDARS = '/calendar/calendars';
+    public const CALENDAR_CALENDAR_MEMBER = '/calendar/calendars/:id/members/:memberId';
     public const CALENDAR_EVENT = '/calendar/events/:id';
     public const CALENDAR_EVENTS = '/calendar/events';
     public const CALENDAR_EVENT_CANCEL = '/calendar/events/:id/cancel';
@@ -120,9 +125,14 @@ final class ApiPaths
     public const CALENDAR_IMPORT = '/calendar/imports/:id';
     public const CALENDAR_IMPORTS = '/calendar/imports';
     public const CALENDAR_IMPORT_UNDO = '/calendar/imports/:id/undo';
+    public const CALENDAR_LOGIN = '/calendar/logins/:id';
+    public const CALENDAR_LOGINS = '/calendar/logins';
+    public const CALENDAR_LOGIN_PROFILE_LINK = '/calendar/logins/profile-link';
     public const CALENDAR_SUBSCRIPTION = '/calendar/subscriptions/:id';
     public const CALENDAR_SUBSCRIPTIONS = '/calendar/subscriptions';
     public const CALENDAR_SUBSCRIPTION_REFRESH = '/calendar/subscriptions/:id/refresh';
+    public const CALENDAR_TODO = '/calendar/todos/:id';
+    public const CALENDAR_TODOS = '/calendar/todos';
     public const CHAT = '/chats/:id';
     public const CHATS = '/chats';
     public const CHAT_MESSAGES = '/chats/:id/messages';
@@ -202,6 +212,7 @@ final class ApiPaths
     public const EMAILS_CHECK = '/emails/check';
     public const EMAILS_COMPOSE = '/emails/compose';
     public const EMAILS_EVENTS = '/emails/events';
+    public const EMAILS_RAW = '/emails/raw';
     public const EMAILS_REWRITE = '/emails/rewrite';
     public const EMAILS_SUBJECT = '/emails/subject';
     public const EMAILS_TRANSLATE = '/emails/translate';
@@ -287,6 +298,7 @@ final class ApiPaths
     public const LABEL_COLORS = '/labels/colors';
     public const LABEL_TEST = '/labels/:id/test';
     public const LANGUAGES = '/languages';
+    public const LIVE_EVENTS = '/live-events';
     public const MAILBOX_EXPORT = '/exports/:id';
     public const MAILBOX_EXPORTS = '/exports';
     public const MAILBOX_EXPORTS_PREVIEW = '/exports/preview';
@@ -332,6 +344,10 @@ final class ApiPaths
     public const SENDING_STREAMS = '/sending/streams';
     public const SENDING_STREAM_RESUME = '/sending/streams/:stream/resume';
     public const SETTINGS = '/settings';
+    public const SHARED_ITEM = '/shared/:token';
+    public const SHARED_ITEM_COPY = '/shared/:token/copy';
+    public const SHARE_LINK = '/share-links/:kind/:itemId';
+    public const SHARE_LINKS = '/share-links';
     public const SIGNATURE = '/signatures/:id';
     public const SIGNATURES = '/signatures';
     public const SIGNATURE_COPY = '/signatures/:id/copy';
@@ -389,7 +405,9 @@ final class ApiPaths
     public const THREAD = '/threads/:id';
     public const THREADS = '/threads';
     public const THREADS_COUNTS = '/threads/counts';
+    public const THREADS_WAIT = '/threads/wait';
     public const THREAD_ASSIGNEE = '/threads/:id/assignee';
+    public const THREAD_AUTOMATIONS = '/threads/:id/automations';
     public const THREAD_COMMENT = '/threads/:id/comments/:commentId';
     public const THREAD_COMMENTS = '/threads/:id/comments';
     public const THREAD_DELIVERY = '/threads/:id/delivery';
@@ -428,6 +446,7 @@ final class ApiPaths
     public const TRACKED_OPENS = '/tracking/:id/opens';
     public const TRACKING = '/tracking';
     public const TRACKING_STATS = '/tracking/stats';
+    public const TRAFFIC = '/traffic';
     public const WEBHOOK = '/webhooks/:id';
     public const WEBHOOKS = '/webhooks';
     public const WEBHOOKS_ACTIVITY = '/webhooks/activity';

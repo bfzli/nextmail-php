@@ -16,6 +16,8 @@ final class Wire
 
     private const ATTACHMENTS = 'attachments';
 
+    private const RAW = 'raw';
+
     private const FIXED_EXPONENT_MAX = 21;
 
     private const FIXED_EXPONENT_MIN = -6;
@@ -34,6 +36,38 @@ final class Wire
         }
 
         return self::attachments($wire);
+    }
+
+    public static function emailRaw(array $body): array
+    {
+        $wire = self::recipients($body);
+
+        if (\array_key_exists(self::RAW, $wire)) {
+            $wire[self::RAW] = self::raw($wire[self::RAW]);
+        }
+
+        if (\array_key_exists(self::FOLLOW_UP_AT, $wire)) {
+            $wire[self::FOLLOW_UP_AT] = self::instant($wire[self::FOLLOW_UP_AT]);
+        }
+
+        return $wire;
+    }
+
+    public static function raw(mixed $value): string
+    {
+        if (\is_string($value)) {
+            if (preg_match(Defaults::BASE64_TEXT, str_replace(Defaults::BASE64_WHITESPACE, '', $value)) === 1) {
+                return $value;
+            }
+
+            return base64_encode($value);
+        }
+
+        if (!RawBody::isReadable($value)) {
+            throw new InvalidArgumentException(Messages::RAW_MESSAGE_SHAPE);
+        }
+
+        return base64_encode(RawBody::read($value));
     }
 
     public static function attachments(array $body): array

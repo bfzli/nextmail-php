@@ -35,6 +35,8 @@ final class Messages
     public const CURL_OPTION_KEY = 'The keys of curlOptions must be CURLOPT_ constants.';
     public const CURL_OPTION_TARGET = 'curlOptions cannot set CURLOPT_REQUEST_TARGET, because the path of every request comes from its URL. Leave it out.';
     public const CURL_OPTION = 'cURL refused curlOptions entry %s: %s. Pass each option as a CURLOPT_ constant with a value of the type cURL expects.';
+    public const RAW_MESSAGE_SHAPE = 'A raw message must be a string, its bytes or base64 text, or an SplFileInfo, a stream resource or a PSR-7 stream, which are read and encoded for you.';
+
     public const ATTACHMENT_CONTENT_SHAPE = 'An attachment\'s content must be base64 text. Encode raw bytes with Nextmail::toBase64(), or pass an SplFileInfo, a stream resource or a PSR-7 stream, which are read and encoded for you.';
     public const IMPORT_FILE_SHAPE = 'Each file to import must be an array with a name and its data: a string of bytes, a stream resource, an SplFileInfo or a PSR-7 stream.';
     public const BATCH_EMAIL_SHAPE = 'Each email in a batch must be an array, the same shape emails->send takes.';
@@ -62,4 +64,9 @@ final class Messages
     public const WEBHOOK_SECRET_REQUIRED = 'A webhook signing secret is required. Pass the secret the webhook was created with as secret.';
     public const WEBHOOK_PAYLOAD_SHAPE = 'The verified payload is not JSON, so it is not an event from Nextmail.';
     public const UPDATE_AVAILABLE = '%s %s %s is available, you are on %s. %s';
+    public const STREAMING_CLIENT_REQUIRED = '%s cannot hand over a response while it is still arriving, so it cannot follow the live event stream. Leave httpClient out to use the built-in cURL client, or pass a client that implements Nextmail\Http\StreamingHttpClient.';
+    public const NOT_AN_EVENT_STREAM = 'The API answered %d with %s where an event stream was expected.';
+    public const NO_CONTENT_TYPE = 'no content type';
+    public const STREAM_IDLE = 'The event stream sent nothing for %ss.';
+    public const EVENT_STREAM_BLOCK = 'The event stream sent more than %d bytes without ending an event.';
 }

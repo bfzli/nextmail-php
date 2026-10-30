@@ -212,12 +212,13 @@ final class Contacts extends Resource
         ?bool $withoutEmail = null,
         ?string $kind = null,
         ?string $groupId = null,
+        ?string $addressBook = null,
         ?int $limit = null,
         ?string $cursor = null,
         #[\SensitiveParameter]
         ?string $apiKey = null,
     ): Page {
-        return $this->fetchPage(ApiPaths::CONTACT_CARDS, $this->cardQuery($email, $withoutEmail, $kind, $groupId), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+        return $this->fetchPage(ApiPaths::CONTACT_CARDS, $this->cardQuery($email, $withoutEmail, $kind, $groupId, $addressBook), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
     public function listAllCards(
@@ -225,12 +226,13 @@ final class Contacts extends Resource
         ?bool $withoutEmail = null,
         ?string $kind = null,
         ?string $groupId = null,
+        ?string $addressBook = null,
         ?int $limit = null,
         ?string $cursor = null,
         #[\SensitiveParameter]
         ?string $apiKey = null,
     ): array {
-        return $this->collectAll(ApiPaths::CONTACT_CARDS, $this->cardQuery($email, $withoutEmail, $kind, $groupId), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+        return $this->collectAll(ApiPaths::CONTACT_CARDS, $this->cardQuery($email, $withoutEmail, $kind, $groupId, $addressBook), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
     public function iterateCards(
@@ -238,12 +240,28 @@ final class Contacts extends Resource
         ?bool $withoutEmail = null,
         ?string $kind = null,
         ?string $groupId = null,
+        ?string $addressBook = null,
         ?int $limit = null,
         ?string $cursor = null,
         #[\SensitiveParameter]
         ?string $apiKey = null,
     ): \Generator {
-        return $this->iteratePages(ApiPaths::CONTACT_CARDS, $this->cardQuery($email, $withoutEmail, $kind, $groupId), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+        return $this->iteratePages(ApiPaths::CONTACT_CARDS, $this->cardQuery($email, $withoutEmail, $kind, $groupId, $addressBook), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    }
+
+    public function listAddressBooks(#[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->fetchList(ApiPaths::ADDRESS_BOOKS, apiKey: $apiKey);
+    }
+
+    public function setAddressBookMember(string $id, string $memberId, array $body, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::ADDRESS_BOOK_MEMBER, id: $id, memberId: $memberId), 'PUT', body: $body, repeatable: true, apiKey: $apiKey);
+    }
+
+    public function removeAddressBookMember(string $id, string $memberId, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::ADDRESS_BOOK_MEMBER, id: $id, memberId: $memberId), 'DELETE', apiKey: $apiKey);
     }
 
     public function getCard(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
@@ -337,8 +355,8 @@ final class Contacts extends Resource
         return $this->query(q: $q, email: $email, sort: $sort, blocked: $this->flag($blocked));
     }
 
-    private function cardQuery(?string $email, ?bool $withoutEmail, ?string $kind, ?string $groupId): array
+    private function cardQuery(?string $email, ?bool $withoutEmail, ?string $kind, ?string $groupId, ?string $addressBook): array
     {
-        return $this->query(email: $email, withoutEmail: $this->flag($withoutEmail), kind: $kind, groupId: $groupId);
+        return $this->query(email: $email, withoutEmail: $this->flag($withoutEmail), kind: $kind, groupId: $groupId, addressBook: $addressBook);
     }
 }

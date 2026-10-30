@@ -9,19 +9,37 @@ use Nextmail\Result\Page;
 
 final class Tasks extends Resource
 {
-    public function list(?string $status = null, ?int $limit = null, ?string $cursor = null, #[\SensitiveParameter] ?string $apiKey = null): Page
-    {
-        return $this->fetchPage(ApiPaths::TASKS, $this->query(status: $status), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    public function list(
+        ?string $status = null,
+        ?string $chatId = null,
+        ?int $limit = null,
+        ?string $cursor = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): Page {
+        return $this->fetchPage(ApiPaths::TASKS, $this->query(status: $status, chatId: $chatId), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
-    public function listAll(?string $status = null, ?int $limit = null, ?string $cursor = null, #[\SensitiveParameter] ?string $apiKey = null): array
-    {
-        return $this->collectAll(ApiPaths::TASKS, $this->query(status: $status), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    public function listAll(
+        ?string $status = null,
+        ?string $chatId = null,
+        ?int $limit = null,
+        ?string $cursor = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): array {
+        return $this->collectAll(ApiPaths::TASKS, $this->query(status: $status, chatId: $chatId), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
-    public function iterate(?string $status = null, ?int $limit = null, ?string $cursor = null, #[\SensitiveParameter] ?string $apiKey = null): \Generator
-    {
-        return $this->iteratePages(ApiPaths::TASKS, $this->query(status: $status), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    public function iterate(
+        ?string $status = null,
+        ?string $chatId = null,
+        ?int $limit = null,
+        ?string $cursor = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): \Generator {
+        return $this->iteratePages(ApiPaths::TASKS, $this->query(status: $status, chatId: $chatId), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
     public function get(string $id, #[\SensitiveParameter] ?string $apiKey = null): array

@@ -6,6 +6,7 @@ namespace Nextmail\Resources;
 
 use Nextmail\Internal\ApiPaths;
 use Nextmail\Internal\Pagination;
+use Nextmail\Internal\Protocol;
 use Nextmail\Result\Page;
 
 final class Threads extends Resource
@@ -174,6 +175,11 @@ final class Threads extends Resource
         return $this->call($this->fill(ApiPaths::THREAD_DELIVERY, id: $id), query: $this->query(address: $address), apiKey: $apiKey);
     }
 
+    public function listAutomations(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->fetchList($this->fill(ApiPaths::THREAD_AUTOMATIONS, id: $id), apiKey: $apiKey);
+    }
+
     public function listNotes(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
     {
         return $this->fetchList($this->fill(ApiPaths::THREAD_NOTES, id: $id), apiKey: $apiKey);
@@ -210,6 +216,23 @@ final class Threads extends Resource
     public function counts(?string $address = null, ?bool $hideLabelled = null, #[\SensitiveParameter] ?string $apiKey = null): array
     {
         return $this->call(ApiPaths::THREADS_COUNTS, query: $this->query(address: $address, hideLabelled: $this->flag($hideLabelled)), apiKey: $apiKey);
+    }
+
+    public function waitForEmail(
+        ?string $address = null,
+        ?string $from = null,
+        ?string $subject = null,
+        string|\DateTimeInterface|null $since = null,
+        ?int $timeout = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): array {
+        return $this->call(
+            ApiPaths::THREADS_WAIT,
+            query: $this->query(address: $address, from: $from, subject: $subject, since: $this->instant($since), timeout: $timeout),
+            apiKey: $apiKey,
+            timeout: max(0, $timeout ?? Protocol::THREAD_WAIT['DEFAULT_TIMEOUT_SECONDS']) + Protocol::THREAD_WAIT['DEADLINE_MARGIN_SECONDS'],
+        );
     }
 
     public function summary(string $id, #[\SensitiveParameter] ?string $apiKey = null): array

@@ -8,7 +8,7 @@ use Nextmail\Exception\InvalidArgumentException;
 use Nextmail\Internal\Defaults;
 use Nextmail\Internal\Messages;
 
-final class CurlHttpClient implements HttpClient
+final class CurlHttpClient implements StreamingHttpClient
 {
     private static array $inherited = [];
 
@@ -75,6 +75,27 @@ final class CurlHttpClient implements HttpClient
         return new HttpResponse(curl_getinfo($handle, CURLINFO_RESPONSE_CODE), $collected, \is_string($body) ? $body : '');
     }
 
+    public function stream(#[\SensitiveParameter] HttpRequest $request): HttpStream
+    {
+        $handle = curl_init();
+
+        if ($handle === false) {
+            throw new HttpClientException(Messages::CURL_HANDLE);
+        }
+
+        $stream = new CurlHttpStream();
+        $options = $this->optionsFor($request, true);
+        unset($options[CURLOPT_HEADERFUNCTION], $options[CURLOPT_WRITEFUNCTION]);
+
+        foreach ($options + $stream->callbacks() as $option => $value) {
+            self::apply($handle, $option, $value);
+        }
+
+        $stream->start($handle, $request->timeout);
+
+        return $stream;
+    }
+
     public function close(): void
     {
         $this->forgetInherited();
@@ -128,7 +149,7 @@ final class CurlHttpClient implements HttpClient
         return $this->curlOptions->getValue();
     }
 
-    private function optionsFor(#[\SensitiveParameter] HttpRequest $request): array
+    private function optionsFor(#[\SensitiveParameter] HttpRequest $request, bool $streaming = false): array
     {
         $defaults = [
             CURLOPT_NOSIGNAL => true,
@@ -175,6 +196,12 @@ final class CurlHttpClient implements HttpClient
             CURLOPT_HEADER => false,
             CURLOPT_NOBODY => $request->method === 'HEAD',
         ];
+
+        if ($streaming) {
+            unset($required[CURLOPT_RETURNTRANSFER]);
+            $required[CURLOPT_TIMEOUT] = 0;
+            $required[CURLOPT_TIMEOUT_MS] = 0;
+        }
 
         if ($request->body !== null) {
             $required[CURLOPT_POSTFIELDS] = $request->body;

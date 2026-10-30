@@ -13,6 +13,7 @@ final class MailboxProviders
     public const ICLOUD = 'icloud';
     public const FASTMAIL = 'fastmail';
     public const ZOHO = 'zoho';
+    public const OPENEMAIL = 'openemail';
     public const OTHER = 'other';
 
     public static function values(): array
@@ -25,6 +26,7 @@ final class MailboxProviders
             self::ICLOUD,
             self::FASTMAIL,
             self::ZOHO,
+            self::OPENEMAIL,
             self::OTHER,
         ];
     }

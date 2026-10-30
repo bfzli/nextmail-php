@@ -1,5 +1,147 @@
 # Changelog
 
+## 0.1.0
+
+Upgrading from 0.0.1: four new arguments sit before arguments that were already there, so a call
+that passes those later arguments by position has to name them. `calendarIds:` comes before `limit:`
+in `calendar->listEvents()`, `listAllEvents()` and `iterateEvents()`, `addressBook:` before `limit:`
+in `contacts->listCards()`, `listAllCards()` and `iterateCards()`, `chatId:` before `limit:` in
+`tasks->list()`, `listAll()` and `iterate()`, and `calendarId:` before `apiKey:` in
+`calendar->importIcs()`, where an API key passed third by position is now sent as the calendar id.
+
+- To-dos: a to-do list is a calendar of kind `todos` (`CalendarKinds::TODOS`), and its items are
+  RFC 5545 to-dos that calendar apps such as Reminders, Thunderbird and tasks.org sync over CalDAV.
+  `calendar->listTodos()`, `listAllTodos()` and `iterateTodos()` read them through
+  `GET /calendar/todos`, filtered by `calendarIds:`, `state:` (`open`, `done` or `all`, as
+  `Nextmail\Constants\TodoStates` names them), `dueBefore:` and `dueAfter:`. `getTodo()`,
+  `createTodo()`, `updateTodo()` and `deleteTodo()` work on one, and `deleteTodo()` says how many
+  to-dos it `removed`. A to-do is an array with a `title`, `notes`, a `status` that
+  `Nextmail\Constants\TodoStatuses` names, `start` and `due` as a day or a moment with `allDay`
+  and `timezone`, `completedAt`, `priority`, `percentComplete`, `categories`, the `parentId` of
+  the to-do it is a step of and the `recurrence` it repeats by. `start`, `due`, `dueBefore:` and
+  `dueAfter:` take a `DateTimeInterface` or a string. Checking off a repeating to-do moves it to its
+  next date. They need `calendar:read` and `calendar:write`.
+- `calendar->listCalendars()` takes `kind:` and lists your to-do lists with `kind: 'todos'`, and
+  `calendar->createCalendar()` takes `kind` to make one. Members, colours, order and deleting work
+  on to-do lists as they do on calendars.
+- `calendar->deleteCalendar()` takes `notifyGuests:`: left out or true, the guests of every
+  upcoming meeting you organised in the calendar are sent a cancellation, as `cancelEvent()` does,
+  and false deletes it without telling anyone. The array it returns carries `cancelledMeetings`.
+  Sending the cancellations needs `emails:send` as well.
+- The two new arguments come after `apiKey:`, so a call that passes `apiKey` by position keeps
+  working: `listCalendars(?string $apiKey = null, ?string $kind = null)` and
+  `deleteCalendar(string $id, ?string $apiKey = null, ?bool $notifyGuests = null)`. They are the
+  only methods whose `apiKey:` is not their last argument, so pass `kind:` and `notifyGuests:` by
+  name.
+- `calendar->listCalendarLogins()`, `createCalendarLogin()`, `revokeCalendarLogin()` and
+  `createCalendarLoginProfileLink()` manage calendar sign-ins, through `/calendar/logins`. A
+  calendar sign-in belongs to a person, not to an address: its username is `cal-` and ten letters
+  and digits, never an address, and it signs calendar and contacts apps in over CalDAV and CardDAV
+  to that person's calendars, the calendars and address books shared with them and their contacts,
+  even when they hold no address at all. Mail apps refuse it and it never sends.
+  `createCalendarLogin()` returns the sign-in with its `password` shown once, its `servers`
+  (`username`, `caldav` and `carddav`, each `null` when the person's role does not reach it) and
+  an Apple configuration profile with CalDAV and CardDAV only in `appleProfile`, and
+  `createCalendarLoginProfileLink()` returns a one-time link that makes one on an Apple device.
+  Your own take `account:read` and `account:write`, and `member:` on `listCalendarLogins()`, or
+  `member` in the body of either create, reaches a member's with `members:write`. Neither create
+  is retried automatically.
+- `SecurityEventKinds` gains `CALENDAR_LOGIN_CREATED` (`'calendar-login-created'`) and
+  `CALENDAR_LOGIN_REVOKED` (`'calendar-login-revoked'`), and the `detail` of a security log entry
+  gains `login`, the username of the sign-in the entry is about.
+- `threads->listAutomations()` reads which automations ran on a thread and what they did, through
+  `GET /threads/{id}/automations`: a list of arrays, newest first, each with the `automation` it
+  was (`id`, `name` and `status`), its `status` and `trigger`, the case the email matched in
+  `match` (the address or domain that received it, the sender entry and the filters that held, or
+  `null`), the `messages` of the thread it started from or sent, each with a `role` that
+  `Nextmail\Constants\AutomationThreadRoles` names, and every step it ran in `steps`, with the step
+  as the version defines it. It needs `threads:read` and `automations:read`.
+- `liveEvents->stream()` follows the mailbox as it changes, without polling: a `Generator` over
+  `GET /live-events` that yields each `message.received`, `message.sent`, `thread.changed`,
+  `thread.deleted` and `message.status_changed` event as it arrives, as an array with `id`, `type`,
+  `occurredAt` and `data`, for as long as you read it. It takes `types:`, `address:`, `lastEventId:`
+  and `apiKey:`. It opens the stream again by itself after the server ends it or the connection
+  drops and resumes through `Last-Event-ID`, backs off after a network failure, a 408, a 429 or a
+  5xx (honouring `Retry-After`), reopens a connection that stays silent for 60 seconds, yields an
+  event whose `type` is `reset` when it cannot resume, and throws on any other error. Breaking out
+  of the loop closes the connection. `Nextmail\Constants\LiveEventTypes`, `LiveSendStatuses` and
+  `LiveResetReasons` name the values.
+- `CurlHttpClient` implements the new `Nextmail\Http\StreamingHttpClient`, whose `stream()` hands
+  over a response as it arrives through `Nextmail\Http\HttpStream`, and `BufferedHttpStream` serves
+  a response already in hand, for test doubles. `Psr18HttpClient` cannot stream, so with it
+  `liveEvents->stream()` throws an `InvalidArgumentException`.
+- `threads->waitForEmail()` holds a request open for up to `timeout:` seconds, from 0 to 60 and 30
+  by default, until a message that matches `from:`, `subject:` and `address:` arrives after
+  `since:`, and returns it as the `message` of a `message_wait`, or `null` when the wait ran out.
+  The call gets `timeout:` plus 15 seconds whatever the client's own `timeout:` is, and it is
+  retried like any read.
+- `AddressForwardStatuses` gains `BOUNCED` (`'bounced'`): a forwarding destination whose server
+  refused forwarded mail for good, so nothing is forwarded to it until it confirms again. A route
+  that forwards to one reads `forward_bounced` (`AddressRouteInactiveReasons::FORWARD_BOUNCED`).
+  Asking a bounced destination again sends it a new confirmation.
+- A traffic entry and a routed message carry `verdicts['arc']`: the ARC verdict for the servers
+  that forwarded the message on its way in, `pass`, `fail`, `none` or `temperror`, and `null` on an
+  entry written before ARC was checked.
+- `calendar->listCalendars()`, `getCalendar()`, `createCalendar()`, `updateCalendar()` and
+  `deleteCalendar()` manage your calendars: the ones you keep, with your default one among them, and
+  the ones other members of the workspace gave you access to, each with its own `color` and
+  `position`. Deleting a calendar deletes its events, and your default calendar
+  cannot be deleted. `calendar->setCalendarMember()` and `removeCalendarMember()` give a member
+  `read` or `write` access to a calendar you keep (`CollectionAccessLevels`), and `access` on a
+  calendar says what you may do with it (`CollectionRights`). A calendar's `kind` is one of
+  `CalendarKinds`.
+- Calendar events and occurrences carry `calendarId`. `createEvent()` takes `calendarId` to put the
+  event in a calendar, `updateEvent()` takes it to move one, `listEvents()`, `listAllEvents()` and
+  `iterateEvents()` take `calendarIds:` to keep only some calendars, `createFeed()` takes
+  `calendarId` to publish one calendar (and a calendar link says which), and `importIcs()` takes
+  `calendarId:` for the calendar the events go into.
+- `contacts->listAddressBooks()` lists your address book and the ones other members gave you access
+  to. `contacts->setAddressBookMember()` and `removeAddressBookMember()` give a member `read` or
+  `write` access to yours. `listCards()`, `listAllCards()` and `iterateCards()` take `addressBook:`
+  to read one you are a member of, and `createCard()` takes `addressBook` to add to one you may
+  write.
+- `setCalendarMember()` and `setAddressBookMember()` are retried like a read, because setting the
+  same access again changes nothing, and the two `remove` methods are not.
+- The new arguments follow the order of the TypeScript SDK: `calendarIds:` comes before `limit:` in
+  `listEvents()`, `listAllEvents()` and `iterateEvents()`, `addressBook:` before `limit:` in
+  `listCards()`, `listAllCards()` and `iterateCards()`, and `calendarId:` before `apiKey:` in
+  `importIcs()`. A call that passes the later arguments by position has to name them.
+- `traffic->list()`, `listAll()` and `iterate()` read the traffic log: one entry for each message
+  and recipient at each step it took in or out of the workspace, newest first, kept for 30 days.
+  They take `domainId:`, `direction:`, `outcomes:`, `address:`, `recipient:`, `since:` and `until:`.
+  Outbound entries need `emails:read` and inbound ones `threads:read`.
+- `emails->sendRaw()` sends an RFC 5322 message you built yourself, as written: `raw` is its bytes,
+  base64 text, an `SplFileInfo` or a stream, up to 10 MB. The sender is its From header and the
+  recipients its To, Cc and Bcc headers, unless `to`, `cc` or `bcc` give the envelope. It takes the
+  scheduling, tracking, signature, tag and lane options of `send()`, honours `idempotencyKey:`, and
+  never sends a Bcc header.
+- The `email_received` trigger of an automation takes `senders`, the addresses or domains its mail
+  has to come from, where a domain covers its subdomains. Left out or empty, mail from anybody starts it.
+- `settings->update` takes `labelAlerts`, and `settings->get` returns it: label ids under each
+  workspace id whose mail still alerts you while labelled mail stays out of your inbox.
+- `MailboxProviders::OPENEMAIL` and `MailServices::OPENEMAIL` (`'openemail'`): the provider of a
+  mailbox on OpenEmail and the `sentWith` of a message sent with it.
+- `sentWith` stays empty, rather than naming Outlook or Gmail, when another mail service signed the
+  message and the only hint is that it passed through Microsoft's or Google's servers on the way or
+  was written in the Outlook app.
+- `shareLinks->list`, `listAll` and `iterate` read the templates, forms and automations the
+  workspace shares at a public link, the newest first, with how often each page was opened and
+  each item copied, and take `kind:` (`ShareKinds`), `limit:` and `cursor:`. `shareLinks->get`
+  reads the link of one item from its kind and id, `shareLinks->set` makes the item public, or
+  with `['copyable' => false]` lets people only look at it, and is retried like a read because an
+  item keeps one link, and `shareLinks->delete` makes it private again. A private item answers
+  404 `share_link_not_found`.
+- `shared->get` reads what the public page of a link shows, from the token at the end of the link
+  and from any workspace, and `shared->copy` copies the item into this workspace as a draft. A
+  copy is never retried, because a second call makes a second copy. An item its owner shares to
+  look at only answers 403 `share_not_copyable`, and a link that no longer works answers 404
+  `shared_item_not_found`.
+- `tasks->list()`, `listAll()` and `iterate()` take `chatId:` to read only the tasks made in one
+  assistant chat, the ones the chat shows above its messages, as the Tasks page does when a chat's
+  task is opened. A chat belongs to one person, so the id of a chat you cannot open lists no tasks.
+  `chatId:` comes before `limit:`, in the order of the TypeScript SDK, so a call that passes the
+  later arguments by position has to name them.
+
 ## 0.0.1
 
 The first release of the PHP package. It has a method for every one of the 746 methods of the

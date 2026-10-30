@@ -41,6 +41,7 @@ use Nextmail\Resources\Keys;
 use Nextmail\Resources\Knowledge;
 use Nextmail\Resources\Labels;
 use Nextmail\Resources\Languages;
+use Nextmail\Resources\LiveEvents;
 use Nextmail\Resources\Me;
 use Nextmail\Resources\Members;
 use Nextmail\Resources\OutOfOffice;
@@ -52,6 +53,8 @@ use Nextmail\Resources\Segments;
 use Nextmail\Resources\Senders;
 use Nextmail\Resources\Sending;
 use Nextmail\Resources\Settings;
+use Nextmail\Resources\Shared;
+use Nextmail\Resources\ShareLinks;
 use Nextmail\Resources\Signatures;
 use Nextmail\Resources\Subscriptions;
 use Nextmail\Resources\Support;
@@ -62,12 +65,13 @@ use Nextmail\Resources\TempMail;
 use Nextmail\Resources\Threads;
 use Nextmail\Resources\Tools;
 use Nextmail\Resources\Tracking;
+use Nextmail\Resources\Traffic;
 use Nextmail\Resources\Webhooks;
 use Nextmail\Resources\Workspaces;
 
 final class Nextmail
 {
-    public const VERSION = '0.0.1';
+    public const VERSION = '0.1.0';
 
     private static ?self $default = null;
 
@@ -84,6 +88,8 @@ final class Nextmail
     public readonly Addresses $addresses;
 
     public readonly Languages $languages;
+
+    public readonly LiveEvents $liveEvents;
 
     public readonly Emails $emails;
 
@@ -139,6 +145,8 @@ final class Nextmail
 
     public readonly Suppressions $suppressions;
 
+    public readonly Traffic $traffic;
+
     public readonly Sending $sending;
 
     public readonly Files $files;
@@ -181,6 +189,10 @@ final class Nextmail
 
     public readonly Segments $segments;
 
+    public readonly ShareLinks $shareLinks;
+
+    public readonly Shared $shared;
+
     public function __construct(
         #[\SensitiveParameter]
         ?string $apiKey = null,
@@ -220,6 +232,7 @@ final class Nextmail
         $this->keys = new Keys($this->raw);
         $this->addresses = new Addresses($this->raw);
         $this->languages = new Languages($this->raw);
+        $this->liveEvents = new LiveEvents($this->raw);
         $this->emails = new Emails($this->raw);
         $this->templates = new Templates($this->raw);
         $this->tracking = new Tracking($this->raw);
@@ -247,6 +260,7 @@ final class Nextmail
         $this->roles = new Roles($this->raw);
         $this->members = new Members($this->raw);
         $this->suppressions = new Suppressions($this->raw);
+        $this->traffic = new Traffic($this->raw);
         $this->sending = new Sending($this->raw);
         $this->files = new Files($this->raw);
         $this->knowledge = new Knowledge($this->raw);
@@ -268,6 +282,8 @@ final class Nextmail
         $this->connectors = new Connectors($this->raw);
         $this->connectedMailboxes = new ConnectedMailboxes($this->raw);
         $this->segments = new Segments($this->raw);
+        $this->shareLinks = new ShareLinks($this->raw);
+        $this->shared = new Shared($this->raw);
     }
 
     public static function createClient(

@@ -14,6 +14,7 @@ final class MailServices
     public const PROTON = 'proton';
     public const ZOHO = 'zoho';
     public const FASTMAIL = 'fastmail';
+    public const OPENEMAIL = 'openemail';
     public const RESEND = 'resend';
     public const SENDGRID = 'sendgrid';
     public const MAILGUN = 'mailgun';
@@ -35,6 +36,7 @@ final class MailServices
             self::PROTON,
             self::ZOHO,
             self::FASTMAIL,
+            self::OPENEMAIL,
             self::RESEND,
             self::SENDGRID,
             self::MAILGUN,

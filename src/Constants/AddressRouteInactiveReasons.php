@@ -14,6 +14,7 @@ final class AddressRouteInactiveReasons
     public const REWRITE_DOMAIN_REMOVED = 'rewrite_domain_removed';
     public const FORWARD_PENDING = 'forward_pending';
     public const FORWARD_REFUSED = 'forward_refused';
+    public const FORWARD_BOUNCED = 'forward_bounced';
 
     public static function values(): array
     {
@@ -26,6 +27,7 @@ final class AddressRouteInactiveReasons
             self::REWRITE_DOMAIN_REMOVED,
             self::FORWARD_PENDING,
             self::FORWARD_REFUSED,
+            self::FORWARD_BOUNCED,
         ];
     }
 }

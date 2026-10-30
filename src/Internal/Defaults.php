@@ -25,6 +25,14 @@ final class Defaults
     public const ISO_INSTANT = 'Y-m-d\TH:i:s.v\Z';
     public const UTC = 'UTC';
     public const PACKAGE = 'nextmail/sdk';
+    public const STREAM_SELECT_SECONDS = 1.0;
+    public const STREAM_SELECT_FALLBACK_MICROSECONDS = 1000;
+    public const STREAM_ERROR_BODY_BYTES = 65536;
+    public const EVENT_STREAM_DEFAULT_EVENT = 'message';
+    public const EVENT_STREAM_MAX_BLOCK_BYTES = 1048576;
+    public const EVENT_STREAM_RETRY_VALUE = '/^[0-9]+$/D';
+    public const EVENT_STREAM_LINE_ENDS = "\r\n";
+    public const JSON_WHITESPACE = " \t\n\r";
 
     public const LOOPBACK_IPV4_PATTERN = '/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/';
     public const ENDPOINT_SCHEME_PATTERN = '/^[a-z][a-z0-9+.-]*:\/\//i';

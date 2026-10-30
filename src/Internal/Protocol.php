@@ -14,6 +14,7 @@ final class Protocol
         'CALENDAR' => 'text/calendar',
         'VCARD' => 'text/vcard',
         'OCTET_STREAM' => 'application/octet-stream',
+        'EVENT_STREAM' => 'text/event-stream',
     ];
     public const CURSOR_STYLES = [
         'CURSOR' => ['PARAM' => 'cursor', 'FIELD' => 'nextCursor'],
@@ -37,6 +38,7 @@ final class Protocol
         422 => 'validation_error',
         429 => 'rate_limit_error',
     ];
+    public const EVENT_STREAM_FIELDS = ['EVENT' => 'event', 'DATA' => 'data', 'ID' => 'id', 'RETRY' => 'retry'];
     public const HEADER_KEYS = [
         'AUTHORIZATION' => 'Authorization',
         'ACCEPT' => 'Accept',
@@ -45,6 +47,7 @@ final class Protocol
         'IDEMPOTENCY_KEY' => 'Idempotency-Key',
         'RETRY_AFTER' => 'retry-after',
         'REQUEST_ID' => 'x-request-id',
+        'LAST_EVENT_ID' => 'Last-Event-ID',
     ];
     public const HTTP_METHODS = [
         'GET' => 'GET',
@@ -79,10 +82,19 @@ final class Protocol
         ['es-cl', 'es-419'],
     ];
     public const LIST_SEPARATOR = ',';
+    public const LIVE_STREAM_EVENTS = ['READY' => 'ready', 'RESET' => 'reset', 'END' => 'end'];
+    public const LIVE_STREAM_TIMING = [
+        'BASE_BACKOFF_MS' => 1000,
+        'MAX_BACKOFF_MS' => 30000,
+        'DEFAULT_RETRY_MS' => 3000,
+        'MAX_RETRY_AFTER_MS' => 300000,
+        'IDLE_TIMEOUT_MS' => 60000,
+    ];
     public const LOCAL_HOSTS = ['localhost', '::1', '[::1]', '127.0.0.1', '0.0.0.0', '::', '[::]'];
     public const LOOPBACK_HOSTNAMES = ['localhost', '::1', '[::1]'];
     public const LOOPBACK_IPV4_ADDRESS = '127.0.0.1';
     public const LOOPBACK_IPV6_ADDRESS = '[::1]';
+    public const MEDIA_TYPE_PARAMETER_SEPARATOR = ';';
     public const QUERY_KEYS = [
         'LIMIT' => 'limit',
         'CURSOR' => 'cursor',
@@ -161,6 +173,7 @@ final class Protocol
         'CONNECTED_APPS' => 'connectedApps',
         'TASK_ID' => 'taskId',
         'RUN_ID' => 'runId',
+        'CHAT_ID' => 'chatId',
         'VIEW' => 'view',
         'PAGE_ID' => 'pageId',
         'DURATION_MINUTES' => 'durationMinutes',
@@ -186,6 +199,18 @@ final class Protocol
         'HIDE_LABELLED' => 'hideLabelled',
         'INACTIVE_DAYS' => 'inactiveDays',
         'MESSAGE_ID' => 'messageId',
+        'DOMAIN_ID' => 'domainId',
+        'TYPES' => 'types',
+        'SUBJECT' => 'subject',
+        'TIMEOUT' => 'timeout',
+        'CALENDAR_IDS' => 'calendarIds',
+        'CALENDAR_ID' => 'calendarId',
+        'ADDRESS_BOOK' => 'addressBook',
+        'MEMBER' => 'member',
+        'STATE' => 'state',
+        'DUE_BEFORE' => 'dueBefore',
+        'DUE_AFTER' => 'dueAfter',
+        'NOTIFY_GUESTS' => 'notifyGuests',
     ];
     public const RETRY = [
         'STATUSES' => [408, 429, 500, 502, 503, 504],
@@ -196,6 +221,7 @@ final class Protocol
         'RATE_LIMIT_STATUS' => 429,
     ];
     public const SEALED_ENCRYPTION_FORMATS = ['pgp-mime', 'pgp-inline', 'smime-encrypted'];
+    public const THREAD_WAIT = ['DEFAULT_TIMEOUT_SECONDS' => 30, 'DEADLINE_MARGIN_SECONDS' => 15];
     public const UNSPECIFIED_HOSTNAMES = ['0.0.0.0', '::', '[::]'];
     public const WEBHOOK_SIGNATURE = [
         'VERSION' => 'v1',

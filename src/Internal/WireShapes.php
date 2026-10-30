@@ -22,6 +22,7 @@ final class WireShapes
         'guestChanges' => true,
         'headers' => true,
         'input' => true,
+        'labelAlerts' => true,
         'loginBackground' => true,
         'mail' => true,
         'nameParts' => true,

@@ -14,7 +14,9 @@ use Nextmail\Http\HttpClient;
 use Nextmail\Http\HttpClientException;
 use Nextmail\Http\HttpRequest;
 use Nextmail\Http\HttpResponse;
+use Nextmail\Http\HttpStream;
 use Nextmail\Http\Psr18HttpClient;
+use Nextmail\Http\StreamingHttpClient;
 use Nextmail\Internal\Credentials;
 use Nextmail\Internal\Defaults;
 use Nextmail\Internal\Endpoint;
@@ -130,6 +132,56 @@ final class Transport
         }
     }
 
+    public function stream(
+        string $path,
+        ?array $query = null,
+        #[\SensitiveParameter]
+        array $headers = [],
+        ?string $accept = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+        int|float|null $timeout = null,
+    ): HttpStream {
+        $client = $this->httpClient;
+
+        if (!$client instanceof StreamingHttpClient) {
+            throw new InvalidArgumentException(\sprintf(Messages::STREAMING_CLIENT_REQUIRED, $client::class));
+        }
+
+        $outbound = new HttpRequest(
+            Protocol::HTTP_METHODS['GET'],
+            Endpoint::buildUrl($this->baseUrl, $path, $query),
+            $this->headersFor(false, false, null, $apiKey, null, false, false, null, $accept, $headers),
+            null,
+            self::effective($timeout === null ? $this->timeout : self::seconds($timeout)),
+        );
+
+        try {
+            $stream = $this->open($client, $outbound);
+        } finally {
+            UpdateNotice::poll();
+        }
+
+        $head = $stream->head();
+
+        if ($head->isSuccessful()) {
+            return $stream;
+        }
+
+        try {
+            $body = self::drain($stream, $outbound->timeout ?? (float) Defaults::TIMEOUT);
+        } finally {
+            $stream->close();
+        }
+
+        throw self::apiError(new HttpResponse($head->status, $head->headers, $body), self::retryAfter($head->header(Protocol::HEADER_KEYS['RETRY_AFTER'])));
+    }
+
+    public function wait(int|float $seconds): void
+    {
+        ($this->sleep)($seconds);
+    }
+
     public function close(): void
     {
         if ($this->httpClient instanceof CurlHttpClient) {
@@ -191,20 +243,65 @@ final class Transport
         try {
             return $this->httpClient->send($request);
         } catch (HttpClientException $error) {
-            if ($error->isTimeout()) {
-                $message = $this->httpClient instanceof Psr18HttpClient && !$this->httpClient->appliesTimeout()
-                    ? \sprintf(Messages::TIMED_OUT_IN_CLIENT, $error->getMessage())
-                    : \sprintf(Messages::TIMED_OUT, Wire::numberText($request->timeout ?? 0.0));
-
-                return new NetworkException($message, true, $error);
-            }
-
-            return new NetworkException(\sprintf(Messages::UNREACHABLE, $this->baseUrl, $error->getMessage()), false, $error);
+            return $this->networkFailure($request, $error);
         } catch (NextmailException|\LogicException $error) {
             throw $error;
         } catch (\Exception $error) {
-            return new NetworkException(\sprintf(Messages::UNREACHABLE, $this->baseUrl, $error->getMessage()), false, $error);
+            return $this->networkFailure($request, $error);
         }
+    }
+
+    private function open(StreamingHttpClient $client, #[\SensitiveParameter] HttpRequest $request): HttpStream
+    {
+        try {
+            return $client->stream($request);
+        } catch (HttpClientException $error) {
+            throw $this->networkFailure($request, $error);
+        } catch (NextmailException|\LogicException $error) {
+            throw $error;
+        } catch (\Exception $error) {
+            throw $this->networkFailure($request, $error);
+        }
+    }
+
+    private function networkFailure(#[\SensitiveParameter] HttpRequest $request, \Exception $error): NetworkException
+    {
+        if ($error instanceof HttpClientException && $error->isTimeout()) {
+            $message = $this->httpClient instanceof Psr18HttpClient && !$this->httpClient->appliesTimeout()
+                ? \sprintf(Messages::TIMED_OUT_IN_CLIENT, $error->getMessage())
+                : \sprintf(Messages::TIMED_OUT, Wire::numberText($request->timeout ?? 0.0));
+
+            return new NetworkException($message, true, $error);
+        }
+
+        return new NetworkException(\sprintf(Messages::UNREACHABLE, $this->baseUrl, $error->getMessage()), false, $error);
+    }
+
+    private static function drain(HttpStream $stream, float $timeout): string
+    {
+        $body = '';
+        $deadline = microtime(true) + $timeout;
+
+        try {
+            while (\strlen($body) < Defaults::STREAM_ERROR_BODY_BYTES) {
+                $left = $deadline - microtime(true);
+
+                if ($left <= 0) {
+                    break;
+                }
+
+                $chunk = $stream->read($left);
+
+                if ($chunk === null) {
+                    break;
+                }
+
+                $body .= $chunk;
+            }
+        } catch (HttpClientException) {
+        }
+
+        return $body;
     }
 
     private function headersFor(
@@ -219,8 +316,16 @@ final class Transport
         bool $idempotent,
         ?string $idempotencyKey,
         ?string $accept,
+        #[\SensitiveParameter]
+        array $extra = [],
     ): array {
         $headers = $this->customHeadersValue();
+
+        foreach ($extra as $name => $value) {
+            if (\is_string($value)) {
+                self::put($headers, self::headerName((string) $name), self::headerValue($value));
+            }
+        }
 
         self::put($headers, Protocol::HEADER_KEYS['ACCEPT'], self::headerValue($accept ?? Protocol::CONTENT_TYPES['JSON']));
         self::put($headers, Protocol::HEADER_KEYS['USER_AGENT'], $this->userAgent);

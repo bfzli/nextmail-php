@@ -27,6 +27,19 @@ final class Emails extends Resource
         );
     }
 
+    public function sendRaw(array $body, ?string $idempotencyKey = null, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(
+            ApiPaths::EMAILS_RAW,
+            'POST',
+            body: Wire::emailRaw($body),
+            idempotent: true,
+            idempotencyKey: $idempotencyKey,
+            repeatable: true,
+            apiKey: $apiKey,
+        );
+    }
+
     public function sendBatch(array $emails, ?string $idempotencyKey = null, #[\SensitiveParameter] ?string $apiKey = null): BatchResult
     {
         $wire = [];

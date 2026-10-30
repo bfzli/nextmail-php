@@ -28,7 +28,7 @@
 
 ## The PHP SDK
 
-The official PHP client for the Nextmail API. It has one method for every method of the TypeScript SDK, under the same names, and a parity check proves that each one sends the same request. It needs PHP 8.2 or later with the curl and json extensions, and nothing else: requests go through one cURL handle per client, which keeps its connection open between requests. Any PSR-18 client, such as Guzzle or Symfony HttpClient, can take its place.
+The official PHP client for the Nextmail API. It has one method for every method of the TypeScript SDK, under the same names, and a parity check proves that each one sends the same request. It needs PHP 8.2 or later with the curl and json extensions, and nothing else: requests go through one cURL handle per client, which keeps its connection open between requests. Any PSR-18 client, such as Guzzle or Symfony HttpClient, can take its place for everything but the live event stream.
 
 It carries a workspace API key or an OAuth access token, so it belongs on a server, in a job or in a tool that runs on your own machine.
 
@@ -215,7 +215,7 @@ $label = $client->raw->request('/labels', method: 'POST', body: ['name' => 'Invo
 
 The path must begin with a single `/`, and a path whose finished URL leaves the base URL's origin throws before a request is sent, so the credential never reaches another host.
 
-`httpClient:` swaps the HTTP layer. Wrap any PSR-18 client in `Nextmail\Http\Psr18HttpClient`, or implement `Nextmail\Http\HttpClient`, one method that takes an `HttpRequest` and returns an `HttpResponse`, which is how a test drives the client without a network.
+`httpClient:` swaps the HTTP layer. Wrap any PSR-18 client in `Nextmail\Http\Psr18HttpClient`, or implement `Nextmail\Http\HttpClient`, one method that takes an `HttpRequest` and returns an `HttpResponse`, which is how a test drives the client without a network. `liveEvents->stream()` reads its response as it arrives, so it needs a client that also implements `Nextmail\Http\StreamingHttpClient`, as the built-in cURL client does, and a test double can answer it with a `Nextmail\Http\BufferedHttpStream`. `Psr18HttpClient` cannot stream.
 
 When a newer version is on Packagist the client says so once, on the command line and only on a terminal. `NEXTMAIL_DISABLE_UPDATE_NOTICE=1` or `disableUpdateNotice: true` turns that off.
 

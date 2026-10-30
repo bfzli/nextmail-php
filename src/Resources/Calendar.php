@@ -16,12 +16,13 @@ final class Calendar extends Resource
         ?string $timezone = null,
         ?bool $includeTeam = null,
         ?string $q = null,
+        string|array|null $calendarIds = null,
         ?int $limit = null,
         ?string $cursor = null,
         #[\SensitiveParameter]
         ?string $apiKey = null,
     ): Page {
-        return $this->fetchPage(ApiPaths::CALENDAR_EVENTS, $this->rangeQuery($from, $to, $timezone, $includeTeam, $q), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+        return $this->fetchPage(ApiPaths::CALENDAR_EVENTS, $this->rangeQuery($from, $to, $timezone, $includeTeam, $q, $calendarIds), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
     public function listAllEvents(
@@ -30,12 +31,13 @@ final class Calendar extends Resource
         ?string $timezone = null,
         ?bool $includeTeam = null,
         ?string $q = null,
+        string|array|null $calendarIds = null,
         ?int $limit = null,
         ?string $cursor = null,
         #[\SensitiveParameter]
         ?string $apiKey = null,
     ): array {
-        return $this->collectAll(ApiPaths::CALENDAR_EVENTS, $this->rangeQuery($from, $to, $timezone, $includeTeam, $q), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+        return $this->collectAll(ApiPaths::CALENDAR_EVENTS, $this->rangeQuery($from, $to, $timezone, $includeTeam, $q, $calendarIds), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
     public function iterateEvents(
@@ -44,12 +46,13 @@ final class Calendar extends Resource
         ?string $timezone = null,
         ?bool $includeTeam = null,
         ?string $q = null,
+        string|array|null $calendarIds = null,
         ?int $limit = null,
         ?string $cursor = null,
         #[\SensitiveParameter]
         ?string $apiKey = null,
     ): \Generator {
-        return $this->iteratePages(ApiPaths::CALENDAR_EVENTS, $this->rangeQuery($from, $to, $timezone, $includeTeam, $q), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+        return $this->iteratePages(ApiPaths::CALENDAR_EVENTS, $this->rangeQuery($from, $to, $timezone, $includeTeam, $q, $calendarIds), limit: $limit, cursor: $cursor, apiKey: $apiKey);
     }
 
     public function getEvent(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
@@ -134,6 +137,125 @@ final class Calendar extends Resource
         return $this->call($this->fill(ApiPaths::CALENDAR_EVENT_DECLINE_PROPOSAL, id: $id), 'POST', body: $body, apiKey: $apiKey);
     }
 
+    public function listCalendars(#[\SensitiveParameter] ?string $apiKey = null, ?string $kind = null): array
+    {
+        return $this->fetchList(ApiPaths::CALENDAR_CALENDARS, $this->query(kind: $kind), apiKey: $apiKey);
+    }
+
+    public function getCalendar(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_CALENDAR, id: $id), apiKey: $apiKey);
+    }
+
+    public function createCalendar(array $body, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::CALENDAR_CALENDARS, 'POST', body: $body, apiKey: $apiKey);
+    }
+
+    public function updateCalendar(string $id, array $patch, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_CALENDAR, id: $id), 'PATCH', body: $patch, apiKey: $apiKey);
+    }
+
+    public function deleteCalendar(string $id, #[\SensitiveParameter] ?string $apiKey = null, ?bool $notifyGuests = null): array
+    {
+        return $this->call(
+            $this->fill(ApiPaths::CALENDAR_CALENDAR, id: $id),
+            'DELETE',
+            query: $this->query(notifyGuests: $this->flag($notifyGuests)),
+            apiKey: $apiKey,
+        );
+    }
+
+    public function setCalendarMember(string $id, string $memberId, array $body, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_CALENDAR_MEMBER, id: $id, memberId: $memberId), 'PUT', body: $body, repeatable: true, apiKey: $apiKey);
+    }
+
+    public function removeCalendarMember(string $id, string $memberId, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_CALENDAR_MEMBER, id: $id, memberId: $memberId), 'DELETE', apiKey: $apiKey);
+    }
+
+    public function listTodos(
+        string|array|null $calendarIds = null,
+        ?string $state = null,
+        string|\DateTimeInterface|null $dueBefore = null,
+        string|\DateTimeInterface|null $dueAfter = null,
+        ?int $limit = null,
+        ?string $cursor = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): Page {
+        return $this->fetchPage(ApiPaths::CALENDAR_TODOS, $this->todoQuery($calendarIds, $state, $dueBefore, $dueAfter), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    }
+
+    public function listAllTodos(
+        string|array|null $calendarIds = null,
+        ?string $state = null,
+        string|\DateTimeInterface|null $dueBefore = null,
+        string|\DateTimeInterface|null $dueAfter = null,
+        ?int $limit = null,
+        ?string $cursor = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): array {
+        return $this->collectAll(ApiPaths::CALENDAR_TODOS, $this->todoQuery($calendarIds, $state, $dueBefore, $dueAfter), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    }
+
+    public function iterateTodos(
+        string|array|null $calendarIds = null,
+        ?string $state = null,
+        string|\DateTimeInterface|null $dueBefore = null,
+        string|\DateTimeInterface|null $dueAfter = null,
+        ?int $limit = null,
+        ?string $cursor = null,
+        #[\SensitiveParameter]
+        ?string $apiKey = null,
+    ): \Generator {
+        return $this->iteratePages(ApiPaths::CALENDAR_TODOS, $this->todoQuery($calendarIds, $state, $dueBefore, $dueAfter), limit: $limit, cursor: $cursor, apiKey: $apiKey);
+    }
+
+    public function getTodo(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_TODO, id: $id), apiKey: $apiKey);
+    }
+
+    public function createTodo(array $body, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::CALENDAR_TODOS, 'POST', body: $this->todoWire($body), apiKey: $apiKey);
+    }
+
+    public function updateTodo(string $id, array $patch, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_TODO, id: $id), 'PATCH', body: $this->todoWire($patch), apiKey: $apiKey);
+    }
+
+    public function deleteTodo(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_TODO, id: $id), 'DELETE', apiKey: $apiKey);
+    }
+
+    public function listCalendarLogins(?string $member = null, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->fetchList(ApiPaths::CALENDAR_LOGINS, $this->query(member: $member), $apiKey);
+    }
+
+    public function createCalendarLogin(array $body, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::CALENDAR_LOGINS, 'POST', body: $body, apiKey: $apiKey);
+    }
+
+    public function revokeCalendarLogin(string $id, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call($this->fill(ApiPaths::CALENDAR_LOGIN, id: $id), 'DELETE', apiKey: $apiKey);
+    }
+
+    public function createCalendarLoginProfileLink(array $body, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::CALENDAR_LOGIN_PROFILE_LINK, 'POST', body: $body, apiKey: $apiKey);
+    }
+
     public function listFeeds(#[\SensitiveParameter] ?string $apiKey = null): array
     {
         return $this->fetchList(ApiPaths::CALENDAR_FEEDS, apiKey: $apiKey);
@@ -179,12 +301,12 @@ final class Calendar extends Resource
         return $this->call($this->fill(ApiPaths::CALENDAR_SUBSCRIPTION, id: $id), 'DELETE', apiKey: $apiKey);
     }
 
-    public function importIcs(mixed $data, ?string $filename = null, #[\SensitiveParameter] ?string $apiKey = null): array
+    public function importIcs(mixed $data, ?string $filename = null, ?string $calendarId = null, #[\SensitiveParameter] ?string $apiKey = null): array
     {
         return $this->call(
             ApiPaths::CALENDAR_IMPORTS,
             'POST',
-            query: $this->query(filename: $filename),
+            query: $this->query(filename: $filename, calendarId: $calendarId),
             raw: $data,
             contentType: Protocol::CONTENT_TYPES['CALENDAR'],
             apiKey: $apiKey,
@@ -216,9 +338,36 @@ final class Calendar extends Resource
         return $this->call($this->fill(ApiPaths::CALENDAR_IMPORT_UNDO, id: $id), 'POST', apiKey: $apiKey);
     }
 
-    private function rangeQuery(string|\DateTimeInterface $from, string|\DateTimeInterface $to, ?string $timezone, ?bool $includeTeam, ?string $q): array
-    {
-        return $this->query(from: $this->instant($from), to: $this->instant($to), timezone: $timezone, includeTeam: $this->flag($includeTeam), q: $q);
+    private function rangeQuery(
+        string|\DateTimeInterface $from,
+        string|\DateTimeInterface $to,
+        ?string $timezone,
+        ?bool $includeTeam,
+        ?string $q,
+        string|array|null $calendarIds,
+    ): array {
+        return $this->query(
+            from: $this->instant($from),
+            to: $this->instant($to),
+            timezone: $timezone,
+            includeTeam: $this->flag($includeTeam),
+            q: $q,
+            calendarIds: $calendarIds === null || $calendarIds === [] || $calendarIds === '' ? null : $this->joined($calendarIds),
+        );
+    }
+
+    private function todoQuery(
+        string|array|null $calendarIds,
+        ?string $state,
+        string|\DateTimeInterface|null $dueBefore,
+        string|\DateTimeInterface|null $dueAfter,
+    ): array {
+        return $this->query(
+            calendarIds: $calendarIds === null || $calendarIds === [] || $calendarIds === '' ? null : $this->joined($calendarIds),
+            state: $state,
+            dueBefore: $this->instant($dueBefore),
+            dueAfter: $this->instant($dueAfter),
+        );
     }
 
     private function eventWire(array $body): array
@@ -244,6 +393,17 @@ final class Calendar extends Resource
     private function answerWire(array $body): array
     {
         foreach (['proposedStart', 'proposedEnd'] as $field) {
+            if (\array_key_exists($field, $body)) {
+                $body[$field] = $this->instant($body[$field]);
+            }
+        }
+
+        return $body;
+    }
+
+    private function todoWire(array $body): array
+    {
+        foreach (['start', 'due'] as $field) {
             if (\array_key_exists($field, $body)) {
                 $body[$field] = $this->instant($body[$field]);
             }

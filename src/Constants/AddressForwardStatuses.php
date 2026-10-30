@@ -10,9 +10,10 @@ final class AddressForwardStatuses
     public const PENDING = 'pending';
     public const REFUSED = 'refused';
     public const PAUSED = 'paused';
+    public const BOUNCED = 'bounced';
 
     public static function values(): array
     {
-        return [self::LIVE, self::PENDING, self::REFUSED, self::PAUSED];
+        return [self::LIVE, self::PENDING, self::REFUSED, self::PAUSED, self::BOUNCED];
     }
 }
