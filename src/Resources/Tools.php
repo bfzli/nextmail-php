@@ -23,6 +23,21 @@ final class Tools extends Resource
         return $this->call(ApiPaths::TOOLS_DELIVERABILITY, query: $this->query(domain: $domain), apiKey: $apiKey);
     }
 
+    public function checkSpf(string $domain, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::TOOLS_SPF, query: $this->query(domain: $domain), apiKey: $apiKey);
+    }
+
+    public function checkDkim(string $domain, ?string $selector = null, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::TOOLS_DKIM, query: $this->query(domain: $domain, selector: $selector), apiKey: $apiKey);
+    }
+
+    public function checkMx(string $domain, #[\SensitiveParameter] ?string $apiKey = null): array
+    {
+        return $this->call(ApiPaths::TOOLS_MX, query: $this->query(domain: $domain), apiKey: $apiKey);
+    }
+
     public function readVerificationCode(#[\SensitiveParameter] array $body, #[\SensitiveParameter] ?string $apiKey = null): array
     {
         return $this->call(ApiPaths::TOOLS_VERIFICATION_CODE, 'POST', body: $body, apiKey: $apiKey);

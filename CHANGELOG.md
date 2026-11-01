@@ -1,5 +1,109 @@
 # Changelog
 
+## 0.1.1
+
+- Every connected mailbox that `connectedMailboxes->list()`, `get()`, `connect()`, `update()` and
+  `sync()` return gains `canManage` and `canManageAccess`. `canManage` says whether the caller may
+  pause it, rename it, give it a new password or disconnect it, and `canManageAccess` whether the
+  caller may give people access to its address or take that access away. Both are true for the
+  workspace owner and for the member who connected the mailbox while they are in the workspace. A
+  key or an app also needs `domains:write` for `canManage` and `members:write` for
+  `canManageAccess`, which is false for one limited to particular addresses or domains.
+- `removable` on a row of `domains->listAddressMembers()` is now true only for a grant of the
+  address itself that the caller may take back with `members->revokeAddress()`, and never for the
+  member who connected a mailbox at the address while they are in the workspace.
+- `members->grantAddress()` refuses the member who connected a mailbox at the address with 422
+  `member_is_connector`, as it refuses the owner with 422 `member_is_owner`, and a workspace whose
+  plan has no team access with 403 `plan_required`. `members->revokeAddress()` refuses to take the
+  address from that member with 422 `member_is_connector`. `revokeAddress()` and `revokeDomain()`
+  refuse an access token acting for a member who does not reach the grant at its level with 403
+  `insufficient_authority`.
+- `SecurityEventKinds` gains `ADDRESS_ACCESS_GRANTED` (`'address-access-granted'`),
+  `ADDRESS_ACCESS_REVOKED` (`'address-access-revoked'`), `DOMAIN_ACCESS_GRANTED`
+  (`'domain-access-granted'`) and `DOMAIN_ACCESS_REVOKED` (`'domain-access-revoked'`), which
+  `members->grantAddress()`, `revokeAddress()`, `grantDomain()` and `revokeDomain()` write, and the
+  `detail` of a security log entry gains `domain`, the domain the entry is about.
+- `WebhookEvents` gains `ADDRESS_ACCESS_GRANTED` (`'address.access_granted'`),
+  `ADDRESS_ACCESS_REVOKED` (`'address.access_revoked'`), `DOMAIN_ACCESS_GRANTED`
+  (`'domain.access_granted'`) and `DOMAIN_ACCESS_REVOKED` (`'domain.access_revoked'`), sent when
+  somebody is given an address or a whole domain, when their level on it changes and when it is
+  taken back, and never for a grant that changed nothing. Their `data` carries the address or the
+  domain, the `member`, `role`, `previousRole`, the `actor` and `changedAt`.
+- An access token acting for the member who connected a mailbox does what that member does in the
+  app: with `members:write` given to its app, `members->grantAddress()` and
+  `members->revokeAddress()` work on the connected address without `members:write` in the member's
+  role, and with `members:read` given to its app, `members->list()` returns the people they can
+  give it to (`userId`, `email`, `name` and `image` only, without the owner).
+
+- `$client->tools->checkSpf($domain)`, `checkDkim($domain, selector: ...)` and `checkMx($domain)`
+  check the public mail records of any domain, as the SPF checker, DKIM checker and MX lookup on
+  the website do. `checkSpf` reads the SPF record through `GET /tools/spf`, follows every
+  `include` and `redirect` into `tree`, counts `lookups` against the limit of 10 and `voidLookups`
+  against the limit of 2, and names the `senders` it recognises. `checkDkim` reads the key at a
+  `selector` through `GET /tools/dkim`, or tries the selectors in common use when none is given,
+  and returns every key in `keys` with its `keyType`, the `keyBits` read from the key, its tags
+  and whether it is `revoked` or in `testing`. `checkMx` reads the MX hosts in delivery order
+  through `GET /tools/mx` with their addresses, reverse DNS and provider, an MX record that refuses
+  all mail (`nullMx`) and the fallback to the A record in `implicit`. Each report has a `status`
+  (`RecordCheckStatuses`) and `findings` with a stable `code` (`SpfFindingCodes`,
+  `DkimFindingCodes`, `MxFindingCodes`), a `severity` (`RecordCheckSeverities`) and a `message`.
+  They need no scope.
+
+- `signups` is a new namespace that lets an agent create an account for a person. Neither call sends
+  a credential, even from a client that holds one, and `Nextmail::createSignups()` reaches them with
+  no key at all, the way `Nextmail::createTempMail()` reaches disposable inboxes. It takes the same
+  `baseUrl:`, `httpClient:`, `maxRetries:`, `timeout:`, `userAgent:`, `headers:` and
+  `disableUpdateNotice:` as the client, and reads `NEXTMAIL_BASE_URL` when `baseUrl:` is left out. A
+  client built with `new Nextmail()` still needs a key, which an agent signing up does not have yet.
+  `signups->create()` starts a sign-up for an address through `POST /signups` and takes an array
+  with `email`, and optionally `name`, `agent` and `scopes`, the scopes from
+  `Nextmail\Constants\ApiScopes`. It emails the address a six-digit code and returns an array with
+  the sign-up `id`, the masked `sentTo` and `expiresAt`. `signups->verify()` sends the code the
+  person read to the agent through `POST /signups/{id}/verify` and returns the new `userId`,
+  `email`, `name`, `workspaceId`, the free `address` or null, and `apiKey`, an array whose `token`
+  is shown only there. An address that already has an account gets no code, and the answer does not
+  say so. Neither call is retried automatically.
+- `tempMail->create()` no longer says it is never rate limited: one network may create 10
+  inboxes every 10 minutes, and the next is 429 `temp_inbox_rate_limited`.
+- `notifications` is a new namespace for what the bell in the app shows the person behind the key or
+  the app. `notifications->list()` reads one page of their notifications, newest first, through `GET
+  /notifications` and takes `limit:` and `cursor:`. It returns a `Nextmail\Result\NotificationPage`
+  with `items`, `unreadCount`, `hasMore` and `nextCursor`, and `unreadCount` counts every unread
+  notification, not only the ones on that page. Each notification is an array with a `kind` that
+  `Nextmail\Constants\NotificationKinds` names, `read`, `readAt`, `notifiedAt` and the `invitation`
+  it is about, null on a kind about something else, whose `status` is `open`, `accepted`,
+  `declined`, `withdrawn` or `expired`, as `Nextmail\Constants\NotificationInvitationStatuses` names
+  them. Today every notification is an invitation to join a workspace, so skip a `kind` you do not
+  know. The person who sent an invitation is in `inviterName`, `inviterEmail` and `inviterImage`, a
+  link to their profile photo, each null when there is none. `notifications->unreadCount()` returns
+  the number on the bell, and `notifications->markRead()` and `notifications->markAllRead()` mark
+  some or all of them read, with how many were `marked` and the `unreadCount` left. They need
+  `account:read` and `account:write`.
+- `notifications->clear()` removes the person's notifications through `POST /notifications/clear`,
+  as Clear notifications in the app does, and needs `account:write`. The notification of an
+  invitation that is still open stays unless `declineInvitations:` is true, which declines every
+  open invitation first, as `account->declineInvitation()` declines one. It returns an array with
+  how many were `cleared`, the `declinedInvitations`, the `openInvitations` still waiting and the
+  `unreadCount` left.
+- Template starters come in styles, as `Nextmail\Constants\TemplateStyles` names them: `minimal`,
+  `modern`, `bold`, `classic`, `dark` and `soft`. A style changes the colours, fonts and shapes of
+  a starter, never its words, links, slots or props. Each starter from `templates->listStarters()`
+  gains `styles`, every style it comes in, and `defaultStyle`, the one it takes when no style is
+  named, and the starter from `templates->getStarter()` gains `style`, the style its `document`
+  and `preview` are in. `getStarter()` takes `style:`, and `listStarters()` takes `category:` to
+  keep the starters of one category. `templates->create()`, `replaceContent()` and `design()` take
+  `style` beside `starter`. A style sent without a starter, or one the starter does not come in,
+  is a 422 `invalid_parameter` on `style`.
+- The two new arguments come after `apiKey:`, so a call that passes `apiKey` by position keeps
+  working: `listStarters(?string $apiKey = null, ?string $category = null)` and
+  `getStarter(string $slug, ?string $apiKey = null, ?string $style = null)`. Pass `category:` and
+  `style:` by name, as you do `kind:` and `notifyGuests:` on `calendar->listCalendars()` and
+  `calendar->deleteCalendar()`.
+- `Nextmail\Constants\TemplateCategories` is new and names every starter category: `account`,
+  `commerce`, `notify` and `marketing`, and now `events`, `hospitality`, `health`, `education`,
+  `real-estate`, `nonprofit`, `travel`, `recruiting` and `community`. A release can add a category
+  or a style, so treat one you do not know as a label.
+
 ## 0.1.0
 
 Upgrading from 0.0.1: four new arguments sit before arguments that were already there, so a call

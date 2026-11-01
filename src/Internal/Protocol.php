@@ -211,6 +211,8 @@ final class Protocol
         'DUE_BEFORE' => 'dueBefore',
         'DUE_AFTER' => 'dueAfter',
         'NOTIFY_GUESTS' => 'notifyGuests',
+        'STYLE' => 'style',
+        'SELECTOR' => 'selector',
     ];
     public const RETRY = [
         'STATUSES' => [408, 429, 500, 502, 503, 504],

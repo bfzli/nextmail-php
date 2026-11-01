@@ -312,6 +312,11 @@ final class ApiPaths
     public const MEMBER_INVITATION = '/members/invitations/:invitationId';
     public const MEMBER_INVITATIONS = '/members/invitations';
     public const MEMBER_INVITATION_RESEND = '/members/invitations/:invitationId/resend';
+    public const NOTIFICATIONS = '/notifications';
+    public const NOTIFICATIONS_CLEAR = '/notifications/clear';
+    public const NOTIFICATIONS_READ = '/notifications/read';
+    public const NOTIFICATIONS_READ_ALL = '/notifications/read-all';
+    public const NOTIFICATIONS_UNREAD_COUNT = '/notifications/unread-count';
     public const OUT_OF_OFFICE = '/out-of-office';
     public const PING = '/ping';
     public const PROVIDER_IMPORT = '/provider-imports/:id';
@@ -351,6 +356,8 @@ final class ApiPaths
     public const SIGNATURE = '/signatures/:id';
     public const SIGNATURES = '/signatures';
     public const SIGNATURE_COPY = '/signatures/:id/copy';
+    public const SIGNUPS = '/signups';
+    public const SIGNUP_VERIFY = '/signups/:id/verify';
     public const SUBSCRIBE_FORM = '/subscribe/:formId';
     public const SUBSCRIPTIONS = '/subscriptions';
     public const SUBSCRIPTIONS_BATCH_KEEP = '/subscriptions/batch-keep';
@@ -439,7 +446,10 @@ final class ApiPaths
     public const TOOLS_BIMI = '/tools/bimi';
     public const TOOLS_COST = '/tools/cost';
     public const TOOLS_DELIVERABILITY = '/tools/deliverability';
+    public const TOOLS_DKIM = '/tools/dkim';
     public const TOOLS_DMARC = '/tools/dmarc';
+    public const TOOLS_MX = '/tools/mx';
+    public const TOOLS_SPF = '/tools/spf';
     public const TOOLS_VERIFICATION_CODE = '/tools/verification-code';
     public const TRACKED = '/tracking/:id';
     public const TRACKED_CLICKS = '/tracking/:id/clicks';

@@ -37,6 +37,10 @@ final class SecurityEventKinds
     public const CONNECTOR_CHANGED = 'connector-changed';
     public const OWNERSHIP_OFFERED = 'ownership-offered';
     public const OWNERSHIP_TRANSFERRED = 'ownership-transferred';
+    public const ADDRESS_ACCESS_GRANTED = 'address-access-granted';
+    public const ADDRESS_ACCESS_REVOKED = 'address-access-revoked';
+    public const DOMAIN_ACCESS_GRANTED = 'domain-access-granted';
+    public const DOMAIN_ACCESS_REVOKED = 'domain-access-revoked';
 
     public static function values(): array
     {
@@ -72,6 +76,10 @@ final class SecurityEventKinds
             self::CONNECTOR_CHANGED,
             self::OWNERSHIP_OFFERED,
             self::OWNERSHIP_TRANSFERRED,
+            self::ADDRESS_ACCESS_GRANTED,
+            self::ADDRESS_ACCESS_REVOKED,
+            self::DOMAIN_ACCESS_GRANTED,
+            self::DOMAIN_ACCESS_REVOKED,
         ];
     }
 }

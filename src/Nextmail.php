@@ -44,6 +44,7 @@ use Nextmail\Resources\Languages;
 use Nextmail\Resources\LiveEvents;
 use Nextmail\Resources\Me;
 use Nextmail\Resources\Members;
+use Nextmail\Resources\Notifications;
 use Nextmail\Resources\OutOfOffice;
 use Nextmail\Resources\ProviderImports;
 use Nextmail\Resources\Roles;
@@ -56,6 +57,7 @@ use Nextmail\Resources\Settings;
 use Nextmail\Resources\Shared;
 use Nextmail\Resources\ShareLinks;
 use Nextmail\Resources\Signatures;
+use Nextmail\Resources\Signups;
 use Nextmail\Resources\Subscriptions;
 use Nextmail\Resources\Support;
 use Nextmail\Resources\Suppressions;
@@ -71,7 +73,7 @@ use Nextmail\Resources\Workspaces;
 
 final class Nextmail
 {
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.1.1';
 
     private static ?self $default = null;
 
@@ -155,6 +157,8 @@ final class Nextmail
 
     public readonly TempMail $tempMail;
 
+    public readonly Signups $signups;
+
     public readonly Exports $exports;
 
     public readonly Chats $chats;
@@ -176,6 +180,8 @@ final class Nextmail
     public readonly Workspaces $workspaces;
 
     public readonly Account $account;
+
+    public readonly Notifications $notifications;
 
     public readonly Signatures $signatures;
 
@@ -265,6 +271,7 @@ final class Nextmail
         $this->files = new Files($this->raw);
         $this->knowledge = new Knowledge($this->raw);
         $this->tempMail = new TempMail($this->raw);
+        $this->signups = new Signups($this->raw);
         $this->exports = new Exports($this->raw);
         $this->chats = new Chats($this->raw);
         $this->encryption = new Encryption($this->raw);
@@ -276,6 +283,7 @@ final class Nextmail
         $this->dnsConnections = new DnsConnections($this->raw);
         $this->workspaces = new Workspaces($this->raw);
         $this->account = new Account($this->raw);
+        $this->notifications = new Notifications($this->raw);
         $this->signatures = new Signatures($this->raw);
         $this->tasks = new Tasks($this->raw);
         $this->bookings = new Bookings($this->raw);
@@ -347,6 +355,28 @@ final class Nextmail
     ): TempMail {
         return new TempMail(new Transport(
             inboxToken: $inboxToken,
+            baseUrl: self::baseUrl($baseUrl),
+            httpClient: $httpClient,
+            maxRetries: $maxRetries,
+            timeout: $timeout,
+            userAgent: $userAgent,
+            headers: $headers,
+            disableUpdateNotice: $disableUpdateNotice,
+        ));
+    }
+
+    public static function createSignups(
+        #[\SensitiveParameter]
+        ?string $baseUrl = null,
+        ?HttpClient $httpClient = null,
+        ?int $maxRetries = null,
+        int|float|null $timeout = null,
+        ?string $userAgent = null,
+        #[\SensitiveParameter]
+        array $headers = [],
+        bool $disableUpdateNotice = false,
+    ): Signups {
+        return new Signups(new Transport(
             baseUrl: self::baseUrl($baseUrl),
             httpClient: $httpClient,
             maxRetries: $maxRetries,

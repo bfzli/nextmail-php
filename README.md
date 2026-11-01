@@ -153,6 +153,21 @@ $page = $tempMail->listMessages($inbox['id'], inboxToken: $inbox['token']);
 
 `create` needs no credential and is the only call that returns the inbox token, so keep it.
 
+### Signing a person up
+```php
+use Nextmail\Nextmail;
+
+$signups = Nextmail::createSignups();
+
+$signUp = $signups->create(['email' => 'ada@example.com', 'agent' => 'Claude Code']);
+
+$account = $signups->verify($signUp['id'], trim((string) readline('The code sent to ' . $signUp['sentTo'] . ': ')));
+
+$client = new Nextmail($account['apiKey']['token']);
+```
+
+An agent with no key starts a sign-up for a person's address, asks them for the six-digit code emailed to them, and gets back an API key for the new account. `apiKey['token']` is shown only in that answer, so store it.
+
 ### OAuth access tokens
 An app a person connected to Nextmail with OAuth, such as a command line tool or an agent, holds an access token rather than an API key. Pass it as `accessToken:`, either the token itself or a callable that returns it:
 

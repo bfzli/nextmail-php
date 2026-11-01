@@ -25,6 +25,8 @@ final class WebhookEvents
     public const DOMAIN_VERIFIED = 'domain.verified';
     public const DOMAIN_SENDING_CHANGED = 'domain.sending_changed';
     public const DOMAIN_DELETED = 'domain.deleted';
+    public const DOMAIN_ACCESS_GRANTED = 'domain.access_granted';
+    public const DOMAIN_ACCESS_REVOKED = 'domain.access_revoked';
     public const SUPPRESSION_ADDED = 'suppression.added';
     public const SUPPRESSION_REMOVED = 'suppression.removed';
     public const FILE_UPLOADED = 'file.uploaded';
@@ -59,6 +61,8 @@ final class WebhookEvents
     public const BROADCAST_FAILED = 'broadcast.failed';
     public const BROADCAST_CANCELLED = 'broadcast.cancelled';
     public const ADDRESS_EXPIRED = 'address.expired';
+    public const ADDRESS_ACCESS_GRANTED = 'address.access_granted';
+    public const ADDRESS_ACCESS_REVOKED = 'address.access_revoked';
 
     public static function values(): array
     {
@@ -82,6 +86,8 @@ final class WebhookEvents
             self::DOMAIN_VERIFIED,
             self::DOMAIN_SENDING_CHANGED,
             self::DOMAIN_DELETED,
+            self::DOMAIN_ACCESS_GRANTED,
+            self::DOMAIN_ACCESS_REVOKED,
             self::SUPPRESSION_ADDED,
             self::SUPPRESSION_REMOVED,
             self::FILE_UPLOADED,
@@ -116,6 +122,8 @@ final class WebhookEvents
             self::BROADCAST_FAILED,
             self::BROADCAST_CANCELLED,
             self::ADDRESS_EXPIRED,
+            self::ADDRESS_ACCESS_GRANTED,
+            self::ADDRESS_ACCESS_REVOKED,
         ];
     }
 }

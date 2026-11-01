@@ -126,14 +126,14 @@ final class Templates extends Resource
         return $this->call($this->fill(ApiPaths::TEMPLATE_VERSION, id: $idOrSlug, version: $version), 'DELETE', apiKey: $apiKey);
     }
 
-    public function listStarters(#[\SensitiveParameter] ?string $apiKey = null): array
+    public function listStarters(#[\SensitiveParameter] ?string $apiKey = null, ?string $category = null): array
     {
-        return $this->fetchList(ApiPaths::TEMPLATE_STARTERS, apiKey: $apiKey);
+        return $this->fetchList(ApiPaths::TEMPLATE_STARTERS, $this->query(category: $category), apiKey: $apiKey);
     }
 
-    public function getStarter(string $slug, #[\SensitiveParameter] ?string $apiKey = null): array
+    public function getStarter(string $slug, #[\SensitiveParameter] ?string $apiKey = null, ?string $style = null): array
     {
-        return $this->call($this->fill(ApiPaths::TEMPLATE_STARTER, slug: $slug), apiKey: $apiKey);
+        return $this->call($this->fill(ApiPaths::TEMPLATE_STARTER, slug: $slug), query: $this->query(style: $style), apiKey: $apiKey);
     }
 
     public function listFonts(#[\SensitiveParameter] ?string $apiKey = null): array
